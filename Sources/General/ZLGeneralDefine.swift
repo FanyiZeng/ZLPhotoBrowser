@@ -46,6 +46,8 @@ struct ZLLayout {
     
     static let thumbCollectionViewLineSpacing: CGFloat = 2
     
+    static let nextTitleFont = getFont(13)
+    
 }
 
 func zlRGB(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat) -> UIColor {

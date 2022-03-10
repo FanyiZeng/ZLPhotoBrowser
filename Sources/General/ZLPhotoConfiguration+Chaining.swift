@@ -205,6 +205,12 @@ extension ZLPhotoConfiguration {
     }
     
     @discardableResult
+    public func allowPreviewVideos(_ value: Bool) -> ZLPhotoConfiguration {
+        allowPreviewVideos = value
+        return self
+    }
+    
+    @discardableResult
     public func showStatusBarInPreviewInterface(_ value: Bool) -> ZLPhotoConfiguration {
         showStatusBarInPreviewInterface = value
         return self

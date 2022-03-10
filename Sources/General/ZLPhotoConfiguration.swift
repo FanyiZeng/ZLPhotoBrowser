@@ -190,6 +190,9 @@ public class ZLPhotoConfiguration: NSObject {
     /// Allow access to the preview large image interface (That is, whether to allow access to the large image interface after clicking the thumbnail image). Defaults to true.
     @objc public var allowPreviewPhotos = true
     
+    /// Allow access to the preview video interface (That is, whether to allow access to the video interface after clicking the thumbnail image). Defaults to true.
+    @objc public var allowPreviewVideos = true
+    
     /// Whether to show the status bar when previewing photos. Defaults to false.
     @objc public var showStatusBarInPreviewInterface = false
     

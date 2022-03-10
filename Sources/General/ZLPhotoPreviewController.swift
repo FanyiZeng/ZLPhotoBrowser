@@ -606,7 +606,6 @@ class ZLPhotoPreviewController: UIViewController {
     func showEditVideoVC(model: ZLPhotoModel, avAsset: AVAsset) {
         let nav = self.navigationController as! ZLImageNavController
         let vc = ZLEditVideoViewController(avAsset: avAsset)
-        vc.modalPresentationStyle = .fullScreen
         
         vc.editFinishBlock = { [weak self, weak nav] (url) in
             if let u = url {

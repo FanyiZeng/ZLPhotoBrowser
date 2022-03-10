@@ -393,10 +393,12 @@ class ZLThumbnailViewController: UIViewController {
             
             self.view.addSubview(self.embedAlbumListView!)
         } else if ZLPhotoConfiguration.default().style == .externalAlbumList {
-            self.externalNavView = ZLExternalAlbumListNavView(title: self.albumList.title)
-            
-            self.externalNavView?.backBlock = { [weak self] in
-                self?.navigationController?.popViewController(animated: true)
+            // 适配需求
+            self.externalNavView = ZLExternalAlbumListNavView(title: "Video")
+            self.externalNavView?.albumTitleLabel.textColor = zlRGB(21, 21, 21)
+            self.externalNavView?.albumTitleLabel.font = getFont(13)
+            self.externalNavView?.nextBlock = { [weak self] in
+                self?.doneBtnClick()
             }
             
             self.externalNavView?.cancelBlock = { [weak self] in
@@ -440,10 +442,12 @@ class ZLThumbnailViewController: UIViewController {
             config.maxSelectCount == 1 &&
             (config.allowEditImage || config.allowEditVideo)
         let condition2 = config.allowPreviewPhotos && config.maxSelectCount == 1 && !config.showSelectBtnWhenSingleSelect
-        if condition1 || condition2 {
-            return false
-        }
-        return true
+        // Evan: 强制不展示bottomToolBar
+        return false
+//        if condition1 || condition2 {
+//            return false
+//        }
+//        return true
     }
     
     // MARK: btn actions
@@ -865,7 +869,7 @@ class ZLThumbnailViewController: UIViewController {
                     nav?.selectImageBlock?()
                 }
             }
-            vc.modalPresentationStyle = .fullScreen
+            
             self.showDetailViewController(vc, sender: nil)
         }
         
@@ -975,6 +979,9 @@ extension ZLThumbnailViewController: UICollectionViewDataSource, UICollectionVie
                 self?.refreshCellIndexAndMaskView()
             }
             self?.resetBottomToolBtnStatus()
+            
+            // next按钮禁用/启用
+            self?.externalNavView?.nextBtn.isEnabled = !isSelected
         }
         
         cell.indexLabel.isHidden = true
@@ -1370,17 +1377,19 @@ class ZLExternalAlbumListNavView: UIView {
     
     let title: String
     
+    let nextTitle = "Next"
+    
     var navBlurView: UIVisualEffectView?
     
-    lazy var backBtn = UIButton(type: .custom)
+    lazy var nextBtn = UIButton(type: .custom)
     
     lazy var albumTitleLabel = UILabel()
-    
-    lazy var cancelBtn = UIButton(type: .custom)
     
     var backBlock: (() -> Void)?
     
     var cancelBlock: (() -> Void)?
+    
+    var nextBlock: (() -> Void)?
     
     init(title: String) {
         self.title = title
@@ -1395,23 +1404,19 @@ class ZLExternalAlbumListNavView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        var insets = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
+        var insets = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 15)
         if #available(iOS 11.0, *) {
             insets = safeAreaInsets
         }
         
         navBlurView?.frame = bounds
         
-        backBtn.frame = CGRect(x: insets.left, y: insets.top, width: 60, height: 44)
         let albumTitleW = min(bounds.width / 2, title.boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width)
         albumTitleLabel.frame = CGRect(x: (bounds.width - albumTitleW) / 2, y: insets.top, width: albumTitleW, height: 44)
-        if ZLPhotoConfiguration.default().navCancelButtonStyle == .text {
-            let cancelBtnW = localLanguageTextValue(.cancel).boundingRect(font: ZLLayout.navTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width + 40
-            cancelBtn.frame = CGRect(x: bounds.width - insets.right - cancelBtnW, y: insets.top, width: cancelBtnW, height: 44)
-        } else {
-            cancelBtn.frame = CGRect(x: bounds.width - insets.right - 44 - 10, y: insets.top, width: 44, height: 44)
-        }
         
+        // 适配需求添加next按钮
+        let nextTitleW = nextTitle.boundingRect(font: ZLLayout.nextTitleFont, limitSize: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 44)).width
+        nextBtn.frame = CGRect(x: bounds.width - 15 - nextTitleW, y: insets.top, width: nextTitleW, height: 44)
     }
     
     func setupUI() {
@@ -1422,36 +1427,28 @@ class ZLExternalAlbumListNavView: UIView {
             addSubview(navBlurView!)
         }
         
-        backBtn.setImage(getImage("zl_navBack"), for: .normal)
-        backBtn.imageEdgeInsets = UIEdgeInsets(top: 0, left: -10, bottom: 0, right: 0)
-        backBtn.addTarget(self, action: #selector(backBtnClick), for: .touchUpInside)
-        addSubview(backBtn)
-        
         albumTitleLabel.textColor = .navTitleColor
         albumTitleLabel.font = ZLLayout.navTitleFont
         albumTitleLabel.text = title
         albumTitleLabel.textAlignment = .center
         addSubview(albumTitleLabel)
-
-        if ZLPhotoConfiguration.default().navCancelButtonStyle == .text {
-            cancelBtn.titleLabel?.font = ZLLayout.navTitleFont
-            cancelBtn.setTitle(localLanguageTextValue(.cancel), for: .normal)
-            cancelBtn.setTitleColor(.navTitleColor, for: .normal)
-        } else {
-            cancelBtn.setImage(getImage("zl_navClose"), for: .normal)
-        }
-        cancelBtn.addTarget(self, action: #selector(cancelBtnClick), for: .touchUpInside)
-        addSubview(cancelBtn)
-    }
-    
-    @objc func backBtnClick() {
-        backBlock?()
+        
+        nextBtn.setTitle(nextTitle, for: .normal)
+        nextBtn.titleLabel?.font = ZLLayout.nextTitleFont
+        nextBtn.setTitleColor(zlRGB(255, 25, 140), for: .normal)
+        nextBtn.setTitleColor(zlRGB(153, 153, 153), for: .disabled)
+        nextBtn.isEnabled = false
+        nextBtn.addTarget(self, action: #selector(nextBtnClicl), for: .touchUpInside)
+        addSubview(nextBtn)
     }
     
     @objc func cancelBtnClick() {
         cancelBlock?()
     }
     
+    @objc func nextBtnClicl() {
+        nextBlock?()
+    }
 }
 
 class ZLLimitedAuthorityTipsView: UIView {

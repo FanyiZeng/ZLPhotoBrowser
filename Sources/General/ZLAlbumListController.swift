@@ -114,7 +114,6 @@ class ZLAlbumListController: UIViewController, UITableViewDataSource, UITableVie
             tableView.contentInsetAdjustmentBehavior = .always
         }
         
-        navView.backBtn.isHidden = true
         navView.cancelBlock = { [weak self] in
             let nav = self?.navigationController as? ZLImageNavController
             nav?.cancelBlock?()
