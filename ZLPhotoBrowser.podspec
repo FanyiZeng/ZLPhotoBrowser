@@ -1,4 +1,5 @@
 Pod::Spec.new do |s|
+
   s.name                  = 'ZLPhotoBrowser'
   s.version               = '4.2.3'
   s.summary               = 'A lightweight and pure Swift implemented library for select photos from album'
